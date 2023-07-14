@@ -44,29 +44,50 @@ void printMainMenu()
     printOnScreen(1, "Created by Nightkingale, on behalf of the UWUVCI-PRIME team");
     printOnScreen(2, "-----------------------------------------------------------");
 
-    // Guess the Wii Menu region using the Wii U Menu installation.
-    menuTitleID = _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU);
-    switch (menuTitleID)
+    // Check to see if 0000001c.app, 0000001f.app, or 00000022.app exist on the NAND.
+    if (fopen("slccmpt01:/title/00000001/00000002/content/0000001c.app", "r"))
     {
-        case 0x0005001010040000:
-            nandFile = "slccmpt01:/title/00000001/00000002/content/0000001c.app";
-            printOnScreen(3, "Region Detected by Wii U Menu: JPN");
-            printOnScreen(4, "Wii Menu Theme File: 0000001c.app");
-            break;
-
-        case 0x0005001010040100:
-            nandFile = "slccmpt01:/title/00000001/00000002/content/0000001f.app";
-            printOnScreen(3, "Region Detected by Wii U Menu: USA");
-            printOnScreen(4, "Wii Menu Theme File: 0000001f.app");
-            break;
-
-        case 0x0005001010040200:
-            nandFile = "slccmpt01:/title/00000001/00000002/content/00000022.app";
-            printOnScreen(3, "Region Detected by Wii U Menu: EUR");
-            printOnScreen(4, "Wii Menu Theme File: 00000022.app");
-            break;
+        nandFile = "slccmpt01:/title/00000001/00000002/content/0000001c.app";
+        printOnScreen(3, "Region Detected by Wii System Menu: JPN");
+        printOnScreen(4, "Wii Menu Theme File: 0000001c.app");
     }
+    else if (fopen("slccmpt01:/title/00000001/00000002/content/0000001f.app", "r"))
+    {
+        nandFile = "slccmpt01:/title/00000001/00000002/content/0000001f.app";
+        printOnScreen(3, "Region Detected by Wii System Menu: USA");
+        printOnScreen(4, "Wii Menu Theme File: 0000001f.app");
+    }
+    else if (fopen("slccmpt01:/title/00000001/00000002/content/00000022.app", "r"))
+    {
+        nandFile = "slccmpt01:/title/00000001/00000002/content/00000022.app";
+        printOnScreen(3, "Region Detected by Wii System Menu: EUR");
+        printOnScreen(4, "Wii Menu Theme File: 00000022.app");
+    }
+    else {
+        // Guess the Wii Menu region using the Wii U Menu installation only if other files don't exist.
+        menuTitleID = _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU);
+        switch (menuTitleID)
+        {
+            case 0x0005001010040000:
+                nandFile = "slccmpt01:/title/00000001/00000002/content/0000001c.app";
+                printOnScreen(3, "Region Detected by Wii U Menu: JPN");
+                printOnScreen(4, "Wii Menu Theme File: 0000001c.app");
+                break;
 
+            case 0x0005001010040100:
+                nandFile = "slccmpt01:/title/00000001/00000002/content/0000001f.app";
+                printOnScreen(3, "Region Detected by Wii U Menu: USA");
+                printOnScreen(4, "Wii Menu Theme File: 0000001f.app");
+                break;
+
+            case 0x0005001010040200:
+                nandFile = "slccmpt01:/title/00000001/00000002/content/00000022.app";
+                printOnScreen(3, "Region Detected by Wii U Menu: EUR");
+                printOnScreen(4, "Wii Menu Theme File: 00000022.app");
+                break;
+        }
+    }
+    
     printOnScreen(5, "-----------------------------------------------------------");
     printOnScreen(6, "Press A to dump Wii System Menu assets.");
     printOnScreen(7, "Press B to restore Wii System Menu assets.");
