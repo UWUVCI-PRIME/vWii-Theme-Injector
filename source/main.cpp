@@ -15,7 +15,6 @@
 
 #define BUFFER_SIZE 0x80000
 
-uint64_t menuTitleID = 0;
 const char* nandFile = NULL;
 const char* dumpFile = "/vol/external01/dump.app";
 
@@ -33,6 +32,23 @@ void printOnScreen(int line, const char* text)
 {
     OSScreenPutFontEx(SCREEN_TV, 0, line, text);
     OSScreenPutFontEx(SCREEN_DRC, 0, line, text);
+}
+
+void printErrorMenu()
+{
+    OSScreenClearBufferEx(SCREEN_TV, 0x990000);
+    OSScreenClearBufferEx(SCREEN_DRC, 0x990000);
+
+    printOnScreen(0, "vWii Theme Injector (v1.0.0)");
+    printOnScreen(1, "Created by Nightkingale, on behalf of the UWUVCI-PRIME team");
+    printOnScreen(2, "-----------------------------------------------------------");
+    printOnScreen(3, "Error: Wii System Menu is not correctly installed!");
+    printOnScreen(4, "Please reinstall the Wii System Menu and try again.");
+    printOnScreen(5, "-----------------------------------------------------------");
+    printOnScreen(6, "Press HOME to exit.");
+
+    OSScreenFlipBuffersEx(SCREEN_TV);
+    OSScreenFlipBuffersEx(SCREEN_DRC);
 }
 
 void printMainMenu()
@@ -64,37 +80,19 @@ void printMainMenu()
         printOnScreen(4, "Wii Menu Theme File: 00000022.app");
     }
     else {
-        // Guess the Wii Menu region using the Wii U Menu installation only if other files don't exist.
-        menuTitleID = _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU);
-        switch (menuTitleID)
-        {
-            case 0x0005001010040000:
-                nandFile = "slccmpt01:/title/00000001/00000002/content/0000001c.app";
-                printOnScreen(3, "Region Detected by Wii U Menu: JPN");
-                printOnScreen(4, "Wii Menu Theme File: 0000001c.app");
-                break;
-
-            case 0x0005001010040100:
-                nandFile = "slccmpt01:/title/00000001/00000002/content/0000001f.app";
-                printOnScreen(3, "Region Detected by Wii U Menu: USA");
-                printOnScreen(4, "Wii Menu Theme File: 0000001f.app");
-                break;
-
-            case 0x0005001010040200:
-                nandFile = "slccmpt01:/title/00000001/00000002/content/00000022.app";
-                printOnScreen(3, "Region Detected by Wii U Menu: EUR");
-                printOnScreen(4, "Wii Menu Theme File: 00000022.app");
-                break;
-        }
+        // Block the user from continuing if the Wii System Menu is not installed.
+        printErrorMenu();
     }
 
-    printOnScreen(5, "-----------------------------------------------------------");
-    printOnScreen(6, "Press A to dump Wii System Menu assets.");
-    printOnScreen(7, "Press B to restore Wii System Menu assets.");
-    printOnScreen(8, "Press HOME to exit.");
+    if (nandFile != NULL) {
+        printOnScreen(5, "-----------------------------------------------------------");
+        printOnScreen(6, "Press A to dump Wii System Menu assets.");
+        printOnScreen(7, "Press B to restore Wii System Menu assets.");
+        printOnScreen(8, "Press HOME to exit.");
 
-    OSScreenFlipBuffersEx(SCREEN_TV);
-    OSScreenFlipBuffersEx(SCREEN_DRC);
+        OSScreenFlipBuffersEx(SCREEN_TV);
+        OSScreenFlipBuffersEx(SCREEN_DRC);
+    }
 }
 
 int main()
@@ -126,7 +124,7 @@ int main()
     // Print the console header.
     printMainMenu();
 
-    while (WHBProcIsRunning())
+    while (WHBProcIsRunning() && nandFile != NULL)
     {
         // Watch the Wii U GamePad for button presses.
         VPADRead(VPAD_CHAN_0, &input, 1, &error);
