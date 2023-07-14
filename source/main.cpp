@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <coreinit/dynload.h>
 #include <coreinit/filesystem_fsa.h>
 #include <coreinit/time.h>
 #include <coreinit/screen.h>
@@ -17,6 +18,16 @@
 uint64_t menuTitleID = 0;
 const char* nandFile = NULL;
 const char* dumpFile = "/vol/external01/dump.app";
+
+static bool checkIfTiramisu()
+{
+    OSDynLoad_Module mod;
+    if (OSDynLoad_Acquire("homebrew_kernel", &mod) == OS_DYNLOAD_OK) {
+        OSDynLoad_Release(mod);
+        return true;
+    }
+    return false;
+}
 
 void printOnScreen(int line, const char* text)
 {
@@ -67,17 +78,32 @@ void printMainMenu()
 
 int main()
 {
+    OSScreenInit();
     WHBProcInit();
+    // Set up the log console for use.
     WHBLogConsoleInit();
-    Mocha_InitLibrary();
-    Mocha_MountFS("slccmpt01", NULL, "/vol/storage_slccmpt01");
+    WHBLogConsoleSetColor(0x00009900);
+    // Initialize the Mocha library.
+    if (Mocha_InitLibrary() != MOCHA_RESULT_SUCCESS) {
+        WHBLogPrint("Mocha_InitLibrary failed!");
+        WHBLogConsoleDraw();
+        OSSleepTicks(OSMillisecondsToTicks(3000));
+        WHBLogConsoleFree();
+        WHBProcShutdown();
+        return 0;
+    }
+
+    // Mount the storage device differently depending on Tiramisu or Aroma.
+    if (checkIfTiramisu())
+        Mocha_MountFS("slccmpt01", "/dev/slccmpt01", "/vol/storage_slccmpt01");
+    else
+        Mocha_MountFS("slccmpt01", NULL, "/vol/storage_slccmpt01");
     // Set some variables for the Wii U GamePad.
     VPADStatus input;
     VPADReadError error;
 
     // Print the console header.
     printMainMenu();
-    WHBLogConsoleSetColor(0x00009900);
 
     while (WHBProcIsRunning())
     {
@@ -201,6 +227,7 @@ int main()
             printMainMenu();
         }
     }
+    Mocha_DeInitLibrary();
     WHBLogConsoleFree();
     WHBProcShutdown();
     return 0;
