@@ -24,9 +24,9 @@ static bool checkIfTiramisu()
     OSDynLoad_Module mod;
     if (OSDynLoad_Acquire("homebrew_kernel", &mod) == OS_DYNLOAD_OK) {
         OSDynLoad_Release(mod);
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 void printOnScreen(int line, const char* text)
@@ -87,7 +87,7 @@ void printMainMenu()
                 break;
         }
     }
-    
+
     printOnScreen(5, "-----------------------------------------------------------");
     printOnScreen(6, "Press A to dump Wii System Menu assets.");
     printOnScreen(7, "Press B to restore Wii System Menu assets.");
