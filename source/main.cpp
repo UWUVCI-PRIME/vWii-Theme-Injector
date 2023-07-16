@@ -36,8 +36,8 @@ void printOnScreen(int line, const char* text)
 
 void printErrorMenu()
 {
-    OSScreenClearBufferEx(SCREEN_TV, 0x990000);
-    OSScreenClearBufferEx(SCREEN_DRC, 0x990000);
+    OSScreenClearBufferEx(SCREEN_TV, 0x99000000);
+    OSScreenClearBufferEx(SCREEN_DRC, 0x99000000);
 
     printOnScreen(0, "vWii Theme Injector (v1.0.0)");
     printOnScreen(1, "Created by Nightkingale, on behalf of the UWUVCI-PRIME team");
@@ -124,10 +124,11 @@ int main()
     // Print the console header.
     printMainMenu();
 
-    while (WHBProcIsRunning() && nandFile != NULL)
+    while (WHBProcIsRunning())
     {
-        // Watch the Wii U GamePad for button presses.
-        VPADRead(VPAD_CHAN_0, &input, 1, &error);
+        if (nandFile != NULL)
+            // Watch the Wii U GamePad for button presses.
+            VPADRead(VPAD_CHAN_0, &input, 1, &error);
 
         if (input.trigger & VPAD_BUTTON_A)
         {
